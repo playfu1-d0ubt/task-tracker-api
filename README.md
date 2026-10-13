@@ -15,7 +15,9 @@ curl -X POST -H "Content-Type: application/json" -d '{"title": "Buy milk"}' http
 }
 ```
 
-## Endpoints
+## What it does
+
+### Endpoints
 
 | Method and URL | What it does | Success code |
 |---|---|---|
@@ -28,7 +30,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"title": "Buy milk"}' http
 
 Every error comes back as JSON, like `{"error": "title is required"}`.
 
-## Input checking
+### Input checking
 
 The API checks what it receives and replies with a clear message instead of crashing.
 
@@ -44,6 +46,22 @@ The API checks what it receives and replies with a clear message instead of cras
 
 Titles have leading and trailing spaces trimmed before they are saved.
 
+### Files
+
+| File | Purpose |
+|---|---|
+| `app.py` | The Flask app: URLs, input checking and error replies |
+| `db.py` | The SQLite functions: create the table, add, read, update and delete tasks |
+| `try_api.sh` | Script that tests every endpoint |
+| `requirements.txt` | Python packages needed |
+| `LICENSE` | MIT licence |
+
+### How it works
+
+1. `db.py` holds all the SQL, and `app.py` never touches the database directly. That meant I could test the database functions on their own before any web code existed.
+2. Every SQL query uses `?` placeholders instead of putting values into the text, which stops SQL injection.
+3. `app.py` checks each request before using it, and returns 400 with a reason if something's wrong.
+
 ## How to run
 
 ```bash
@@ -58,7 +76,7 @@ flask --app app run
 
 The API is now at `http://127.0.0.1:5000`. The database file (`tasks.db`) is created automatically the first time it runs.
 
-## Trying it out
+### Trying it out
 
 With the server running, open a second terminal and run:
 
@@ -81,23 +99,26 @@ curl -X PATCH -H "Content-Type: application/json" -d '{"done": true}' http://127
 curl -X DELETE http://127.0.0.1:5000/tasks/1
 ```
 
-## Files
-
-| File | Purpose |
-|---|---|
-| `app.py` | The Flask app: URLs, input checking and error replies |
-| `db.py` | The SQLite functions: create the table, add, read, update and delete tasks |
-| `try_api.sh` | Script that tests every endpoint |
-| `requirements.txt` | Python packages needed |
-
-## How it works
-
-1. `db.py` holds all the SQL, and `app.py` never touches the database directly. That meant I could test the database functions on their own before any web code existed.
-2. Every SQL query uses `?` placeholders instead of putting values into the text, which stops SQL injection.
-3. `app.py` checks each request before using it, and returns 400 with a reason if something's wrong.
-
 ## Limitations
 
 - There is no login. Anyone who can reach the server can read and change every task.
 - It uses Flask's built-in development server, which isn't meant for real traffic.
-- There's one shared list, with no users, due dates
+- There's one shared list, with no users, due dates, filtering or pagination.
+- The database file name is fixed in `db.py`.
+- The only tests are the `try_api.sh` script. There are no automated `pytest` tests or GitHub Actions workflow yet.
+
+## What I learned
+
+- How HTTP works in practice: methods (`GET`, `POST`, `PATCH`, `DELETE`), status codes and JSON bodies.
+- Building an API with Flask and storing data with `sqlite3`.
+- Keeping the database code in its own file made it easier to test on its own before adding the web code.
+- Using `?` placeholders in SQL, so user input is never part of the query text.
+- Validating input and replying with a clear error is a big part of what makes an API usable.
+
+## Ideas for later
+
+- `pytest` tests with Flask's test client, and a GitHub Actions workflow
+- A `?done=true` filter and pagination on `GET /tasks`
+- Due dates, and a simple API key check
+- Running it with `gunicorn` or `waitress`
+- A small web page that uses the API as its back end
