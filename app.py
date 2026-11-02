@@ -1,7 +1,7 @@
 """A small task tracker API built with Flask and SQLite."""
 
-from flask import Flask, jsonify, request
 import db
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 db.init_db()  # make sure the table exists when the app starts
